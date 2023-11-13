@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <title>Drawing game</title>
+    <link rel="icon" type="image/x-icon" href="image/logo11.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style1.css">
+    <link rel="stylesheet" href="style2.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="script.js" defer></script>
+</head>
+<body>
+{{> navbar}}
+    <div class="container">
+        <div class="left">
+        <section class="tools-board" style="padding: 5px;">
+            <div class="row">
+                <label class="title">Shapes</label>
+                <ul class="options">
+                    <li class="option tool" id="rectangle">
+                        <img src="image/icons8-rectangle-16.png" alt="">
+                        <span>Rectangle</span>
+                    </li>
+                    <li class="option tool" id="circle">
+                        <img src="image/icons8-circle-50.png" alt="">
+                        <span>Circle</span>
+                    </li>
+                    <li class="option tool" id="triangle">
+                        <img src="image/icons8-triangle-24.png" alt="">
+                        <span>Triangle</span>
+                    </li>
+                    <li class="option">
+                        <input type="checkbox" id="fill-color">
+                        <label for="fill-color">Fill color</label>
+                    </li>
+                </ul>
+            </div>
+            <div class="row">
+                <label class="title">Options</label>
+                <ul class="options">
+                    <li class="option active tool" id="brush">
+                        <img src="image/icons8-brush-50.png" alt="">
+                        <span>Brush</span>
+                    </li>
+                    <li class="option tool" id="eraser">
+                        <img src="image/icons8-eraser-50.png" alt="">
+                        <span>Eraser</span>
+                    </li>
+                    <li class="option">
+                        <input type="range" id="size-slider" min="1" max="30" value="5">
+                    </li>
+                </ul>
+            </div>
+            <div class="row colors">
+                <label class="title">Colors</label>
+                <ul class="options">
+                    <li class="option"></li>
+                    <li class="option selected"></li>
+                    <li class="option"></li>
+                    <!-- <li class="option"></li> -->
+                    <li class="option">
+                        <input type="color" id="color-picker" value="#4A98F7">
+                    </li>
+                </ul>
+            </div>
+            <div class="row buttons">
+                <button class="clear-canvas">Clear Canvas</button>
+                <button class="save-img">Save As Image</button>
+            </div>
+        </section>
+        <section class="drawing-board">
+            <div class="board-top" style="display: flex; flex-direction: row; justify-content: space-between;">
+                <h1>Drawing-board</h1>
+                <button id="toggle-tools" class="toggle-button">Tools</button>
+
+            </div>
+            <canvas></canvas>
+        </section>
+        </div>
+        <div class="right">
+            <section class="chat-box">
+                <h2>Chat Box</h2>
+                <div class="chat-messages">
+                    <!-- Display chat messages here -->
+                </div>
+                <input type="text" id="message-input" placeholder="Type your message">
+                <button id="send-message">Send</button>
+            </section>
+        </div>
+    </div>
+
+    {{> footer}}
+</body>
+</html>

@@ -1,0 +1,144 @@
+/* code for navbar */
+
+
+@import url('https://fonts.googleapis.com/css2?family=Righteous&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bevan&display=swap');
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    top: 0px;
+    /* height: 100vh; */
+    background-color: beige;
+}
+
+
+
+
+
+
+#header {
+    /* position: absolute; */
+    top: 0px;
+    left: 0px;
+    /* background: rgb(210 183 129 / 65%); */
+    overflow: hidden;
+    backdrop-filter: blur(12px);
+    animation: anihead 3.5s linear infinite;
+    height: 54px;
+    /* width: 100vw; */
+   
+}
+@keyframes anihead{
+    0%{
+        box-shadow: 0px 5px 156px #00d2c6;
+    }
+    50%{
+        box-shadow: 0px 5px 200px #00d2c6;
+    }
+    100%{
+        box-shadow: 0px 5px 156px #00d2c6;
+    }
+} 
+#logo {
+    
+    /* display: inline-block; */
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    /* font-size: 2.5rem; */
+    /* top: -5px; */
+    /* bottom: -5px; */
+    margin: 2px;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Bevan', cursive;
+    
+    
+    
+} 
+#list{
+    
+    position: absolute;
+    display: flex;
+    justify-content: right;
+    align-items: center;
+    right: 0.001%;
+    width: 515px;
+    height: 100%;
+    font-size: 24px;
+   
+}
+
+
+ul li{
+    list-style: none;
+    margin-inline: 15px;
+    
+}
+
+
+ul li a{
+    text-decoration: none;
+    color:  #f5efef;
+    text-shadow: 0 0 25px #00ad9a;
+    font-family: 'Righteous', cursive;
+    
+   
+}
+
+
+a:hover{
+    color: #037b6d;
+}
+
+
+#hamburger{
+    display: none;
+}
+
+/* footer code */
+footer{
+    /* position: absolute; */
+    margin-top: 20px;
+    padding: 7px;
+    width: 100%;
+    background-color: rgb(20 15 38);
+    text-align: center;
+    color: white;
+    bottom: 0;
+}
+
+
+.lname
+{
+    font-size: 30px;
+   text-transform: uppercase;
+  background-image: linear-gradient(
+    -225deg,
+    #2cb926 0%,
+    #44107a 29%,
+    #ff1361 67%,
+    #fff800 100%
+  );
+  background-size: auto auto;
+  background-clip: border-box;
+  background-size: 200% auto;
+  color: #fff;
+  background-clip: text;
+  /* text-fill-color: transparent; */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textclip 2s linear infinite;
+  display: inline-block;
+}
+
+@keyframes textclip {
+  to {
+    background-position: 200% center;
+  }
+}
+

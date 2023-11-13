@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>1v1 Challenge</title>
+    <link rel="icon" type="image/x-icon" href="image/logo11.png">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="style1.css">
+    <link rel="stylesheet" href="style2.css">
+  </head>
+  <body>
+    {{> navbar}}
+
+    <main>
+      <section id="heading">
+        <div id="leadership-title">
+          <h2 style="text-align: center;">Welcome</h2>
+          <h2 style="text-align: center;">You are Admin Now</h2>
+        </div>
+        <div id="search-bar" style="display: flex; flex-direction: row; justify-content: space-between;">
+          <input type="text" id="search-input" placeholder="Search online player...">
+          <button id="search-button" onclick="searchUsers()">Search</button>
+        </div>
+      </section>
+      <section>
+
+        <div class="admin-panel">
+          <h1>Create a New Game Session</h1>
+          <button id="generate-link">Generate Invite Link</button>
+          <br>
+          <p>Invite Link: <span id="invite-link">Your Invite Link Will Appear Here</span></p>
+        </div>
+
+        <div class="lobby">
+          <h3>See who are waiting in Lobby:</h3>
+          <div id="lobby-users">
+            <!-- Usernames of users waiting in the lobby will be displayed here -->
+          </div>
+        </div>
+
+      </section>
+      <br>
+      
+      <section id="game-settings">
+        <h3>Game Settings</h3>
+        <label for="game-type">Game Type:</label>
+        <select id="game-type">
+          <option value="public">Public</option>
+          <option value="private">Private</option>
+        </select>
+        <button id="start-game-button">Start Game</button>
+      </section>
+    </main>
+    
+    {{> footer}}
+    <script src="admin.js"></script>
+  </body>
+</html>

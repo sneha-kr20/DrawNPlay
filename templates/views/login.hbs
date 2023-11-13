@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Login and Registration Forms</title>
+    <link rel="icon" type="image/x-icon" href="image/logo11.png">
+    <link rel="stylesheet" href="style1.css">
+    <link rel="stylesheet" href="style2.css">
+    <link rel="stylesheet" href="login.css">
+  </head>
+  <body >
+{{> navbar}}
+    <div class="form-selector">
+      <button id="register-btn" onclick="document.getElementById('register-form').style.display = 'block';  document.getElementById('login-form').style.display = 'none';">Register</button>
+      <button id="login-btn" onclick="document.getElementById('login-form').style.display = 'block';  document.getElementById('register-form').style.display = 'none';">Login</button>
+    </div>
+
+    <div id="register-form" class="form-container">
+        <form action="/login" method="POST">
+        <h2>Registration Form</h2>
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="email">Email</label>
+        <input type="email" id="email1" name="email" required>
+
+        <label for="password">Password</label>
+        <input type="password" id="password1" name="password" required>
+
+        <input type="submit" value="Submit" onclick="submitForm()">
+      </form>
+    </div>
+
+    <div id="login-form" class="form-container">
+        <form action="/check" method="POST">
+        <h2>Login Form</h2>
+        <label for="email">Email</label>
+        <input type="email" id="email2" name="email" required>
+
+        <label for="password">Password</label>
+        <input type="password" id="password2" name="password" required>
+
+        <input type="submit" value="Submit" onclick="submitForm()">
+      </form>
+    </div>
+
+    {{> footer}}
+    <script>
+      const message = new URLSearchParams(window.location.search).get("message");
+if (message) {
+  alert(message);
+}
+
+    </script>
+  <script src="srcipt.js"></script>
+  </body>
+</html>

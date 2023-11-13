@@ -1,0 +1,17 @@
+<div id="header">
+        <div id="logo" >
+            <img src="image/logo1.png" alt="" style="height: 50px;width: 90px;">
+            <p class="lname"><a href="/index">DrawNPlay</a></p>
+
+        </div>
+        <ul id="list">
+            <li><a href="/index">Home</a></li>
+            <li><a href="/leaderboard">LeaderBoard</a></li>
+            <li><a href="/contact">ContactUs</a></li>
+            {{#if loggedIn}}
+                <li><a href="/dashboard">DashBoard</a></li>
+            {{else}}
+                <li><a href="/login">Login</a></li>
+            {{/if}} 
+        </ul>
+    </div>

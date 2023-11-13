@@ -1,0 +1,270 @@
+@import url("https://fonts.googleapis.com/css?family=Poppins:100,200,300,400,500,600,700,800,900");
+
+/* * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  display: flex;
+  background: #000;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+} */
+
+
+
+.content h2 {
+  color: #fff;
+  font-size: 8em;
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+.content h2:nth-child(1) {
+  color: transparent;
+  -webkit-text-stroke: 2px #03a9f4;
+}
+a :hover{
+  color: green;
+}
+
+.content h2:nth-child(2) {
+  color: #03a9f4;
+  animation: animate 4s ease-in-out infinite;
+}
+
+@keyframes animate {
+  0%,
+  100% {
+    clip-path: polygon(
+      0% 45%,
+      16% 44%,
+      33% 50%,
+      54% 60%,
+      70% 61%,
+      84% 59%,
+      100% 52%,
+      100% 100%,
+      0% 100%
+    );
+  }
+
+  50% {
+    clip-path: polygon(
+      0% 60%,
+      15% 65%,
+      34% 66%,
+      51% 62%,
+      67% 50%,
+      84% 45%,
+      100% 46%,
+      100% 100%,
+      0% 100%
+    );
+  }
+}
+
+
+
+/* Main Section Styles */
+main {
+    padding: 20px;
+  }
+  
+  #hero {
+
+    border: solid black;
+    border-radius: 5px;
+    /* background-color: #a5888b;; */
+    /* text-align: center; */
+    display: flex;
+    justify-content: center;
+    text-align: right;
+    padding: 100px 0 ;
+    margin: 20px;
+  }
+  
+  #hero h1 {
+    font-size: 36px;
+    margin-bottom: 20px;
+  }
+  
+  #hero p {
+    font-size: 18px;
+  }
+  
+  #gameplay {
+    
+    display: flex;
+    
+    justify-content: space-around;
+    flex-wrap: wrap;
+    margin: 40px 0;
+  }
+  
+  .gameplay-column {
+    border: solid black;
+    border-radius: 5px;
+    color: white;
+    background-color: #6e4f524d;
+    display: flex;
+    flex-direction: column;
+    /* flex: 1; */
+    text-align: center;
+    margin: 20px;
+    padding: 40px;
+    
+  }
+  
+  .gameplay-column img {
+    width: 100%;
+    max-width: 300px;
+    border-radius: 10px;
+  }
+  
+  .action-button,.learn-button {
+    background-color: #007BFF;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 10px;
+  }
+  
+  .action-button:hover,.learn-button:hover {
+    background-color: #0056b3;
+  }
+  
+  #instructions, #about-us {
+    text-align: center;
+    margin: 40px 0;
+  }
+  
+/* Styles for Instruction Section */
+#instructions {
+    border: solid black;
+    border-radius: 5px;
+    color: white;
+    background-color: #6e4f524d;;
+    padding: 40px;
+    text-align: center;
+  }
+  
+  #instructions h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  #instructions p {
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
+  
+  #instructions ul {
+    text-align: left;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  #instructions li {
+    font-size: 16px;
+    margin: 10px 0;
+  }
+  
+  /* Styles for About Us Section */
+  #about-us {
+    color: white;
+    border: solid black;
+    border-radius: 5px;
+    background-color: #6e4f524d;;
+    padding: 40px;
+    text-align: center;
+  }
+  
+  #about-us h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  #about-us p {
+    font-size: 16px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .leaders{
+    gap: 10px;
+    margin: 10px;
+  border: 2px solid black;
+  border-radius: 10px;
+  display: flex; flex-direction: column;
+  align-items: center;
+}
+.leaders img{
+  width: 70%;
+  height: 70%;
+}
+.leaders img img{
+  width: 100%;
+  height: 100%;
+}
+.links{
+  align-items: center;
+}
+.links a{
+  margin: 10px;
+}
+
+.learn{
+  color: #007BFF;
+}
+
+li{
+  text-decoration: none;
+}
+
+/* Add your CSS styles for modal and button here */
+.modal {
+  display: none;
+  padding: 20px;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  /* overflow: auto; */
+}
+
+.modal-content {
+  color: white;
+  background-color: #514646;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  text-align: center;
+}
+
+.close {
+  color: white;
+  background-color: #f44336;
+  border-radius: 10px;
+  position: absolute;
+  right: 25px;
+  top: 20px;
+  font-size: 30px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.close:hover {
+  color: #78f436;
+}
+

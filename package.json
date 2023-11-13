@@ -1,0 +1,23 @@
+{
+  "name": "drawnplay",
+  "version": "1.0.0",
+  "description": "Draw and Guess",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bootstrap": "^5.2.3",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "hbs": "^4.2.0",
+    "jquery": "^3.6.4",
+    "mongoose": "^7.0.2",
+    "nodemon": "^2.0.22",
+    "validator": "^13.9.0"
+  },
+  "author": "Shivam",
+  "license": "ISC",
+  "devDependencies": {},
+  "keywords": []
+}

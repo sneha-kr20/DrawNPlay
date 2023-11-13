@@ -1,0 +1,115 @@
+/* Main section styles */
+main {
+    background-color: #fff;
+    padding: 20px;
+    margin: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Heading styles */
+  #heading {
+    
+    margin-bottom: 20px;
+  }
+  
+  #leadership-title h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  
+  #search-bar {
+    display: flex;
+    align-items: center;
+  }
+  
+  #search-input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 10px;
+    width: 100%;
+  }
+  
+  #search-button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  /* Invite options styles */
+  #invite-options h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  
+  #invite-link {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 10px;
+    width: 80%;
+  }
+  
+  #invite-button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  /* Game settings styles */
+  #game-settings h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  
+  #game-type {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 10px;
+  }
+  
+  #start-game-button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .admin-panel {
+    text-align: center;
+    margin: 20px;
+  }
+  
+  button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    margin: 30px;
+    border-radius: 10px;
+  }
+  
+  #invite-link {
+    font-weight: bold;
+  }
+
+  #lobby-users {
+    background-color: #f5f5f5;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 20px;
+    margin-top: 20px;
+    max-height: 200px;
+    overflow-y: auto;
+  }

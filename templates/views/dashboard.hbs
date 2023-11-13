@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="image/logo11.png">
+    <link rel="stylesheet" href="style1.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="style2.css">
+</head>
+<body>
+    {{> navbar}}
+    <main>
+    <nav>
+        <div class="user-info">
+        <h1>Welcome, <span id="user-name">{{ username }}</span></h1>
+        </div>
+    </nav>
+    <section class="dashboard">
+        <div class="user-stats">
+        <h2>Your Stats</h2>
+        <p>Ranking: <span id="user-ranking">{{ userRanking }}</span></p>
+        <p>Points: <span id="user-points">{{ points }}</span></p>
+        <p>Total Game Played : <span id="user-points">{{ totalGamesPlayed }}</span></p>
+        <!-- ... other user stats -->
+        </div>
+        <div class="game-history">
+        <h2>Game History</h2>
+        <table>
+            <thead>
+                        <tr>
+                            <th>Game ID</th>
+                            <th>Date</th>
+                            <th>Points</th>
+                            <th>Ranking</th>
+                        </tr>
+            </thead>
+            <tbody id="game-history-table">
+                {{#each last10Games}}
+                <tr>
+                <td>{{ this.gameID }}</td>
+                <td>{{ this.date }}</td>
+                <td>{{ this.points }}</td>
+                <td>{{ this.rank }}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        </div>
+    </section>
+    </main>
+    <!-- ... rest of your HTML -->
+
+
+
+    <div class="btn">
+
+        <button id="logout-btn" onclick="logout()">Logout</button>
+    </div>
+    {{> footer}}
+    <script>
+        function logout() {
+        fetch("/logout")
+            .then(() => {
+            // reload the page after logging out
+            window.location.reload();
+            window.location.href = "/";
+            })
+            .catch((error) => console.error(error));
+        }
+    </script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

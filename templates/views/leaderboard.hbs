@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>LeaderBoard</title>
+    <link rel="icon" type="image/x-icon" href="image/logo11.png">
+    <link rel="stylesheet" href="style1.css">
+    <link rel="stylesheet" href="leaderboard.css">
+    <link rel="stylesheet" href="style2.css">
+  </head>
+  <body>
+
+    
+    {{> navbar}}
+
+      <main>
+      <!-- Heading Section -->
+      <section id="heading">
+          <div id="leadership-title">
+              <h2>Leadership</h2>
+          </div>
+          <div id="search-bar">
+              <input type="text" id="search-input" placeholder="Search player...">
+              <button id="search-button">Search</button>
+          </div>
+      </section>
+    
+      <!-- Table Section -->
+      <section id="table">
+          <div id="leaderboard">
+              <h3>Player Rankings</h3>
+              <table>
+                  <thead>
+                      <tr>
+                          <th>Rank</th>
+                          <th>Name</th>
+                          <th>Points</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      {{#each users}}
+                          <tr>
+                              <td>{{@index}}</td>
+                              <td>{{this.username}}</td>
+                              <td>{{this.points}}</td>
+                          </tr>
+                      {{/each}}
+                  </tbody>
+              </table>
+          </div>
+      </section>
+  </main>
+
+      
+
+      {{> footer }}
+      <script>
+        // JavaScript code to handle search functionality
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+        const leaderboardTable = document.querySelector('#leaderboard table tbody');
+
+        searchButton.addEventListener('click', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const rows = leaderboardTable.querySelectorAll('tr');
+
+            rows.forEach(row => {
+                const userName = row.getElementsByTagName('td')[1].textContent.toLowerCase();
+                row.style.display = userName.includes(searchTerm) ? 'table-row' : 'none';
+            });
+        });
+
+      </script>
+  <script src="srcipt.js"></script>
+  <script src="login.js"></script>
+  </body>
+</html>
