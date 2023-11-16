@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Existing Game Sessions</title>
+    <style>
+        
+
+        h1{
+            color: aliceblue;
+            font-size: 30px;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .game-container {
+            border: 1px solid #ccc;
+            background-color: rgb(39, 39, 60);
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #ccc;
+        }
+
+        .join-button {
+            background-color: #4CAF50;
+            color: white;
+            border: solid black;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+    </style>
+    <link rel="icon" type="image/x-icon" href="image/logo11.png">
+    <link rel="stylesheet" href="style1.css">
+    <link rel="stylesheet" href="style2.css">
+</head>
+<body>
+    {{> navbar }}
+    <h1>Existing Game Sessions</h1>
+
+    <div id="game-list-container"></div>
+    {{> footer}}
+    <script>
+        // Function to fetch existing games from the server
+        async function fetchExistingGames() {
+            try {
+                const response = await fetch('/api/getExistingGames');
+                if (response.ok) {
+                    const existingGames = await response.json();
+                    return existingGames;
+                } else {
+                    console.error('Failed to fetch existing games:', response.statusText);
+                    return [];
+                }
+            } catch (error) {
+                console.error('Error fetching existing games:', error.message);
+                return [];
+            }
+        }
+
+        // Function to render existing games on the page
+        async function renderExistingGames() {
+            const existingGames = await fetchExistingGames();
+            const gameListContainer = document.getElementById('game-list-container');
+
+            // Clear existing content
+            gameListContainer.innerHTML = '';
+
+            if (existingGames.length === 0) {
+            const noGamesMessage = document.createElement('h1');
+            noGamesMessage.textContent = 'No current game sessions are going on.';
+            gameListContainer.appendChild(noGamesMessage);
+            return;
+        }
+
+            // Iterate over existing games and create HTML elements
+            existingGames.forEach(game => {
+                const gameContainer = document.createElement('div');
+                gameContainer.classList.add('game-container');
+
+                const gameIdElement = document.createElement('p');
+                gameIdElement.textContent = `Game ID: ${game.gameID}`;
+
+                const playersElement = document.createElement('p');
+                playersElement.textContent = `Players: ${game.playersCount}`;
+
+                const joinButton = document.createElement('button');
+                joinButton.textContent = 'Join';
+                joinButton.classList.add('join-button');
+
+                // Attach click event to join button
+                joinButton.addEventListener('click', () => handleJoinGame(game.gameID));
+
+                gameContainer.appendChild(gameIdElement);
+                gameContainer.appendChild(playersElement);
+                gameContainer.appendChild(joinButton);
+
+                gameListContainer.appendChild(gameContainer);
+            });
+        }
+
+        // Function to handle joining a game session
+        function handleJoinGame(gameId) {
+            // Redirect the user to the game page with the game ID
+            window.location.href = `/game/${gameId}`;
+        }
+
+        // Call the function to render existing games on page load
+        renderExistingGames();
+    </script>
+
+</body>
+</html>

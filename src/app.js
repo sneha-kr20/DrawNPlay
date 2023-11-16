@@ -197,6 +197,7 @@ io.on('connection', socket => {
           socket.broadcast.to(gameID).emit('left', { name, gameID });
           delete users[socket.id];
           updatePlayerInfo(socket, gameID);
+          io.to(gameID).emit('update-player-count', getPlayersCountInGame(gameID));
       }
   });
 
@@ -204,6 +205,25 @@ io.on('connection', socket => {
     socket.broadcast.to(gameID).emit('drawing', drawingData);
 });
 
+});
+
+const getPlayersCountInGame = (gameID) => {
+  return Object.values(users).filter(user => user.gameID === gameID).length;
+};
+
+
+app.get('/api/getExistingGames', (req, res) => {
+  const publicGames = Object.values(gameSessions)
+      .filter((game) => game.active && game.gameType === 'public') // Adjusted filtering condition
+      .map((game) => ({
+          gameID: game.gameID,
+          adminName: game.adminName,
+          playersCount: game.players.length,
+          // maxPlayers: game.maxPlayers,
+      }));
+  // console.log(publicGames);
+
+  res.json(publicGames);
 });
 
 // Routes
@@ -308,6 +328,10 @@ app.get("/contact", (req, res) => {
 });
 app.get("/payment", (req, res) => {
   res.render("payment1");
+});
+
+app.get("/multiplayer", (req, res) => {
+  res.render("multiplayer");
 });
 app.get("/404", (req, res) => {
   res.render("404");

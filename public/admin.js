@@ -15,7 +15,8 @@ function generateRandomLink() {
     const randomIndex = Math.floor(Math.random() * characters.length);
     randomLink += characters.charAt(randomIndex);
   }
-  let link = 'http://localhost:3000/game/' + randomLink;
+  // let link = 'http://localhost:3000/game/' + randomLink;
+  let link = 'https://drawnplay.onrender.com/game/' + randomLink;
   return link;
 }
 
