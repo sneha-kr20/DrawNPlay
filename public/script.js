@@ -144,124 +144,174 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 document.addEventListener("DOMContentLoaded", function () {
-    const socket = io('http://localhost:3000');
-    console.log(socket);
-    // const socket = io('https://gussing-game-63hl.onrender.com/');
-    const form = document.getElementById('send-container');
-    const messageInput = document.getElementById('message-input');
-    const messageContainer = document.querySelector(".chat-messages");
+  // const socket = io('http://localhost:3000');
+  const socket = io('https://drawnplay.onrender.com');
+  const form = document.getElementById('send-container');
+  const messageInput = document.getElementById('message-input');
+  const messageContainer = document.querySelector(".chat-messages");
+  let hasJoined = false; // Flag to check if the user has already joined
 
-    const appendMessage = (message, position) => {
-        const messageElement = document.createElement('div');
-        messageElement.innerText = message;
-        messageElement.classList.add('message');
-        messageElement.classList.add(position);
-        messageContainer.append(messageElement);
-    }
+  const appendMessage = (message, position) => {
+      const messageElement = document.createElement('div');
+      messageElement.innerText = message;
+      messageElement.classList.add('message');
+      messageElement.classList.add(position);
+      messageContainer.append(messageElement);
+  }
 
-    const appendNotification = (message, position) => {
-        const notificationElement = document.createElement('div');
-        notificationElement.innerText = message;
-        notificationElement.classList.add('message');
-        notificationElement.classList.add(position);
-        messageContainer.append(notificationElement);
-    }
-    // Assuming you have a function to fetch data from an API
-        async function getUsername() {
-            try {
-            const response = await fetch('/get-username');
-            const data = await response.json();
-        
-            if (data.username) {
-                const username = data.username;
-                socket.emit('new-user-joined', username);
-            } else {
-                const name = prompt("Enter your name to join");
-                socket.emit('new-user-joined', name);
+  const appendNotification = (message, position) => {
+      const notificationElement = document.createElement('div');
+      notificationElement.innerText = message;
+      notificationElement.classList.add('message');
+      notificationElement.classList.add(position);
+      messageContainer.append(notificationElement);
+  }
 
-            }
-            } catch (error) {
-            console.error('Error fetching username:', error);
-            }
-        }
+  // Assuming you have a function to fetch data from an API
+  const gameID = window.location.pathname.split('/').pop();
+  async function getUsername() {
+      try {
+          const response = await fetch('/get-username');
+          const data = await response.json();
+
+          if (data.username && !hasJoined) {
+              const username = data.username;
+              socket.emit('new-user-joined', { name: username, gameID: gameID });
+              hasJoined = true; // Set the flag to true after joining
+          }
+      } catch (error) {
+          console.error('Error fetching username:', error);
+      }
+  }
+
+  // Call this function when you need to get the username
+  getUsername();
+
+  socket.on('user-joined', ({ name, gameID }) => {
+      if (!hasJoined) {
+          // Display the "joined" message only if the user is joining for the first time
+          appendNotification(`${name} joined the chat`, 'center');
+          hasJoined = true;
+      }
+  });
+
+    socket.on('receive', ({ message, name }) => {
+      if (name === getUsername()) {
+          appendNotification(`You: ${message}`, 'center');
+      }else {
+          appendMessage(`${name}: ${message}`, 'left');
+      }
+  });
   
-        // Call this function when you need to get the username
-        getUsername();
-  
-    
-    socket.on('user-joined', name => {
+  // Function to update player table on the client side
+  const updatePlayerTable = (players) => {
+    const playerListBody = document.getElementById('playerListBody');
+
+    // Clear existing rows
+    playerListBody.innerHTML = '';
+
+    // Update the table with the current player list
+    players.forEach(player => {
+        const row = playerListBody.insertRow();
+        const nameCell = row.insertCell(0);
+        const pointsCell = row.insertCell(1);
+        const rankCell = row.insertCell(2);
+
+        nameCell.textContent = player.name;
+        pointsCell.textContent = player.points;
+        rankCell.textContent = player.rank;
+    });
+  };
+
+  socket.on('user-joined', ({ name, gameID }) => {
+    if (!playerList.some(player => player.name === name)) {
+        // Add the new player to the player list with default values
+        playerList.push({ name, points: 10, rank: playerList.length + 1 });
+        updatePlayerTable(playerList);
         appendNotification(`${name} joined the chat`, 'center');
-    });
+    }
+  });
 
-    socket.on('receive', data => {
-        if (data.name === name) {
-            appendNotification(`You: ${data.message}`, 'center');
-        } else {
-            appendMessage(`${data.name}: ${data.message}`, 'left');
-        }
-    });
+  socket.on('update-players', players => {
+    // Update the player list and table when player information changes
+    playerList = players;
+    updatePlayerTable(playerList);
+  });
+  
 
-    socket.on('left', name => {
+    socket.on('left', ({ name, gameID }) => {
         appendNotification(`${name} left the chat`, 'center');
     });
-
     form.addEventListener('submit', (e) => {
         e.preventDefault();
-        const message = messageInput.value;
-        appendMessage(`You: ${message}`, 'right');
-        socket.emit('send', message);
-        messageInput.value = '';
-    });
-});
+           
 
-
-document.addEventListener("DOMContentLoaded", function () {
-    const canvas = document.querySelector("canvas");
-    const ctx = canvas.getContext("2d");
-    let isDrawing = false;
-    let drawingData = [];
-
-    // Initialize Socket.IO connection
-    const socket = io('http://localhost:3000'); // Connect to the current host
-
-    canvas.addEventListener("mousedown", (e) => {
-        isDrawing = true;
-        const { offsetX, offsetY } = e;
-        drawingData.push({
+        async function getUsername() {
+          try {
+              const response = await fetch('/get-username');
+              const data = await response.json();
+    
+              if (data.username) {
+                  const name = data.username;
+                  const message = messageInput.value;
+                  appendMessage(`You: ${message}`, 'right');
+                  socket.emit('send', { message, gameID: gameID,name:name });
+                  messageInput.value = '';
+              } else {
+                const message = messageInput.value;
+                appendMessage(`You: ${message}`, 'right');
+                let name="xys";
+                socket.emit('send', { message, gameID: gameID,name:name });
+                messageInput.value = '';
+              }
+          } catch (error) {
+              console.error('Error fetching username:', error);
+          }
+        }   
+        getUsername();// Call this function when you need to get the username
+      });
+      
+      
+      const canvas = document.querySelector("canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.willReadFrequently = true;
+      let isDrawing = false;
+      let drawingData = [];
+      
+      canvas.addEventListener("mousedown", (e) => {
+          isDrawing = true;
+          const { offsetX, offsetY } = e;
+          drawingData.push({
             type: "start",
             x: offsetX,
             y: offsetY
-        });
-    });
-
-    canvas.addEventListener("mousemove", (e) => {
-        if (!isDrawing) return;
-        const { offsetX, offsetY } = e;
-        drawingData.push({
-            type: "draw",
-            x: offsetX,
-            y: offsetY
-        });
-        draw();
-    });
-
-    canvas.addEventListener("mouseup", () => {
-        isDrawing = false;
-        drawingData.push({
-            type: "end"
-        });
-
-        // Send drawing data to the server using Socket.IO
-        socket.emit("drawing", drawingData);
-
-        // Reset the drawing data
-        drawingData = [];
-    });
-
-    function draw() {
+          });
+      });
+      
+      canvas.addEventListener("mousemove", (e) => {
+          if (!isDrawing) return;
+          const { offsetX, offsetY } = e;
+          drawingData.push({
+              type: "draw",
+              x: offsetX,
+              y: offsetY
+          });
+          draw();
+      });
+      
+      canvas.addEventListener("mouseup", () => {
+          isDrawing = false;
+          drawingData.push({
+              type: "end"
+          });
+          socket.emit("drawing", {drawingData,gameID});
+          drawingData = [];// Reset the drawing data
+      });
+      
+      function draw() {
         ctx.beginPath();
         ctx.moveTo(drawingData[0].x, drawingData[0].y);
-
+      
         for (let i = 1; i < drawingData.length; i++) {
             if (drawingData[i].type === "draw") {
                 ctx.lineTo(drawingData[i].x, drawingData[i].y);
@@ -272,14 +322,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 ctx.closePath();
             }
         }
-    }
+      }
 
-    // Event listener for receiving drawing data from other users
-    socket.on("drawing", (data) => {
-        drawingData = data;
-        draw();
-    });
+      // Event listener for receiving drawing data from other users
+      socket.on("drawing", (data) => {
+          drawingData = data;
+          draw();
+      });
 });
+
+
 
 
 
