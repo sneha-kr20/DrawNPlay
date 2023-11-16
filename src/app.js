@@ -287,7 +287,7 @@ app.get("/game/:gameID", async (req, res) => {
           );
 
           if (playerAlreadyJoined) {
-              return res.status(400).send("Player has already joined the game");
+            res.render("game", { gameID: gameID, adminName: adminName, players: game.players });
           }
 
           game.players.push({
