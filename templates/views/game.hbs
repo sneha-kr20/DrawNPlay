@@ -4,16 +4,22 @@
     <meta charset="utf-8">
     <title>Drawing game</title>
     <link rel="icon" type="image/x-icon" href="image/logo11.png">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="style1.css">
-    <link rel="stylesheet" href="style2.css">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/style1.css">
+    <link rel="stylesheet" href="/style2.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/script.js" defer></script>
 
-    <script src="script.js" defer></script>
 </head>
 <body>
 {{> navbar}}
+    <div class="heading" style="display: flex;flex-direction: row;justify-content: space-around;  background-color: rgb(79, 79, 138); color: azure; font-size: 20px;">
+            <span id="gameid">GameID: {{ gameID }}</span></span>
+            <span id="namae">Admin Name: {{ adminName }}</span></span>
+    </div>
     <div class="container">
         <div class="left">
         <section class="tools-board" style="padding: 5px;">
@@ -86,12 +92,30 @@
                 <div class="chat-messages">
                     <!-- Display chat messages here -->
                 </div>
-                <input type="text" id="message-input" placeholder="Type your message">
-                <button id="send-message">Send</button>
+                <form action="#" id="send-container">
+                    <input type="text" id="message-input" name="message-input" placeholder="Type your message">
+                    <button id="send-message">Send</button>
+                </form>
             </section>
         </div>
     </div>
 
+    <div class="players" style="display: flex;flex-direction: column;align-items: center;  background-color: rgb(79, 79, 138); color: azure;
+    font-size: 20px; padding: 20px;margin-top: 10px;margin-bottom: 10px;">
+    <h1>Total Players Joins the Game</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Player Name</th>
+                <th>Points</th>
+                <th>Ranking</th>
+            </tr>
+        </thead>
+        <tbody id="playerListBody">
+            <!-- Existing rows -->
+        </tbody>
+    </table>
+    </div>
     {{> footer}}
 </body>
 </html>

@@ -7,13 +7,26 @@
     <link rel="stylesheet" href="style1.css">
     <link rel="stylesheet" href="style2.css">
     <link rel="stylesheet" href="home.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="script.js" defer></script>
   </head>
   <body>
 
-    {{> navbar }}
+    
+    <div id="header">
+        <div id="logo" >
+            <!-- DramNPlay -->
+            <img src="image/logo1.png" alt="" style="height: 50px;width: 90px;">
+            <p class="lname"><a href="index.html">DrawNPlay</a></p>
+
+        </div>
+        <ul id="list">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="leaderboard.html">LeaderBoard</a></li>
+            <li><a href="contact.html">ContactUs</a></li>
+            <li><a href="login.html">Login</a></li>  
+        </ul>
+        <div id="hamburger"><i class="fa fa-bars" aria-hidden="true"></i></div>
+    </div>
+
     <main>
         <section id="hero">
             <div class="content">
@@ -165,17 +178,20 @@
             <p>We are a team of passionate game developers who aim to create fun and engaging games for everyone. Our mission is to provide you with the best gaming experience possible.</p>
           </section>
       </main>
-  {{> footer}}
+
+    <footer class="footer" style="position: relative;">
+        © 2023 Copyright: <a href="index.html">DrawNPlay.com</a>
+    </footer>
   <script src="srcipt.js"></script>
   <script src="home.js"></script>
   <script>
     const challengeBtn1 = document.getElementById("1v1");
     const challengeBtn2 = document.getElementById("multiplayer");
     challengeBtn1.addEventListener("click", function () {
-      window.location.href = "/admin";
+      window.location.href = "admin.html";
     });
     challengeBtn2.addEventListener("click", function () {
-      window.location.href = "/game";
+      window.location.href = "game.html";
     });
   </script>
   

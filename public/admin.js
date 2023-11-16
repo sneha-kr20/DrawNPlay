@@ -15,7 +15,7 @@ function generateRandomLink() {
     const randomIndex = Math.floor(Math.random() * characters.length);
     randomLink += characters.charAt(randomIndex);
   }
-  let link='https://static-game.onrender.com/'+randomLink;
+  let link = 'http://localhost:3000/game/' + randomLink;
   return link;
 }
 
@@ -23,13 +23,48 @@ function generateRandomLink() {
 generateLinkButton.addEventListener('click', function () {
   const randomInviteLink = generateRandomLink();
   inviteLinkElement.textContent = randomInviteLink;
+
+  // Emit a Socket.IO event to notify all connected clients about the new game session
+  socket.emit('new-game-session', { inviteLink: randomInviteLink });
 });
 
 // Initial text for the invite link
 inviteLinkElement.textContent = 'Your Invite Link Will Appear Here';
 
-let start=document.getElementById('start-game-button');
-start.addEventListener("click", function () {
-    window.location.href = "game.html";
-  });
+let startGameButton = document.getElementById('start-game-button');
+startGameButton.addEventListener('click', async function () {
+  const inviteLink = inviteLinkElement.textContent;
+  const gameType = document.getElementById('game-type').value;
 
+  // Check if the invite link is generated
+  if (inviteLink === 'Your Invite Link Will Appear Here') {
+    alert('Please generate an invite link first!');
+  } else {
+    try {
+      const parts = inviteLink.split('/');
+      const id = parts[parts.length - 1];
+
+      const response = await fetch('/game/start', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          gameID: id,
+          gameType
+        })
+      });
+      
+      if (response.ok) {
+        // If the response is successful, handle accordingly (e.g., redirect to game)
+        window.location.href = `/game/${id}`;
+        // window.location.href = `/game`;
+      } else {
+        // Handle errors or server-side issues
+        alert('Please login first!');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+});

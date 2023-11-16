@@ -1,12 +1,15 @@
 const express = require("express");
 const path = require("path");
 const app = express();
+const http = require("http");
 const hbs = require("hbs");
+const server = http.createServer(app);
+const io = require('socket.io')(server);
 require("./db/conn");
 
 const User = require("./models/usermessage");
 const User1 = require("./models/userlogin");
-const games= require("./models/games");
+const GameSession= require("./models/games");
 
 const port = process.env.PORT || 3000;
 
@@ -23,6 +26,14 @@ app.use(
   })
 );
 app.use(express.json());
+
+app.use(express.static(path.join(__dirname, '../public')));
+
+const cors = require('cors');
+app.use(cors());
+
+
+
 
 // console.log(path.join(__dirname," ../public"));
 
@@ -55,8 +66,22 @@ app.get("/index", (req, res) => {
     res.render("login");
   });
   
-  app.get("/admin", (req, res) => {
-    res.render("admin");
+app.get("/admin", async(req, res) => {
+    try {
+      const allUsers = await User1.find({}); // Fetch all users
+  
+      if (!allUsers || allUsers.length === 0) {
+        return res.status(404).send("No users found");
+      }
+  
+      // Sort users by points in descending order
+      allUsers.sort((a, b) => b.points - a.points);
+  
+      res.render("admin", { users: allUsers });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Internal server error");
+    }
   });
   app.get("/game", (req, res) => {
     res.render("game");
@@ -125,6 +150,132 @@ app.get("/index", (req, res) => {
 
 
 
+const users = {};
+
+io.on('connection', socket => {
+  console.log(`Connection established: ${socket.id}`);
+    // Prompt the user for their name
+    socket.emit('request-name');
+
+    // When a user sends their name, store it and notify others
+    socket.on('new-user-joined', name => {
+        users[socket.id] = name;
+        socket.broadcast.emit('user-joined', name);
+    });
+
+    // If someone sends a message, broadcast it to other people
+    socket.on('send', message => {
+        socket.broadcast.emit('receive', { message, name: users[socket.id] });
+    });
+
+    // If someone leaves the chat, let others know
+    socket.on('disconnect', () => {
+        socket.broadcast.emit('left', users[socket.id]);
+        delete users[socket.id];
+    });
+
+
+    socket.on('drawing', data => {
+        socket.broadcast.emit('drawing', data);
+    });
+});
+
+
+// Routes
+app.post("/game/start", async (req, res) => {
+  try {
+    const { gameID, gameType } = req.body;
+
+    if (req.session.usern) {
+      const adminName = req.session.usern;
+
+      // Check if a game with the same ID already exists
+      const existingGame = await GameSession.findOne({ gameID });
+
+      if (existingGame) {
+        return res.status(400).send("Game with this ID already exists");
+      }
+
+      const newGame = new GameSession({
+        gameID,
+        gameType,
+        date: new Date(),
+        adminName: adminName,
+        players: [
+          {
+            username: adminName,
+            points: 10,
+            rank: 0,
+          },
+        ],
+      });
+      
+      await newGame.save();
+
+      res.status(200).send("Game session created successfully");
+    } else {
+      res.status(500).send("Login first");
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error initiating the game");
+  }
+});
+
+
+
+app.get("/game/:gameID", async (req, res) => {
+  try {
+    const gameID = req.params.gameID;
+    console.log(gameID);
+    if (req.session.usern) {
+      const playerName = req.session.usern;
+      const game = await GameSession.findOne({ gameID });
+
+      if (!game) {
+        return res.status(404).send("Game not found");
+      }
+
+      const playerAlreadyJoined = game.players.some(
+        (player) => player.username === playerName && player.username !== game.adminName
+      );
+      
+      if (playerAlreadyJoined) {
+        return res.status(400).send("Player has already joined the game");
+      }
+
+      game.players.push({
+        username: playerName,
+        points: 0,
+        rank: 1000,
+      });
+
+      await game.save();
+      let adminName = "xyz";
+      res.render("game", { gameID: gameID, adminName: adminName, players: game.players });
+    } else {
+      res.redirect("/login");
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error joining the game");
+  }
+});
+
+
+app.get('/get-username', (req, res) => {
+  if (req.session.usern) {
+      // If the user is authenticated, send the username to the client
+      res.json({ username: req.session.usern });
+  } else {
+    res.render("login");
+      // res.status(401).json({ error: 'User not authenticated' });
+  }
+});
+
+
+
+
 
 app.get("/contact", (req, res) => {
   res.render("contact");
@@ -165,7 +316,7 @@ app.post("/login", async (req, res) => {
     //   console.log(req.session.loggedIn);
     //   console.log(req.body.username);
     //   console.log(req.session.emailn);
-      res.status(201).render("index");
+    res.status(201).redirect("/dashboard");
     }
   } catch (error) {
     if (error.code === 11000 && error.keyPattern.email === 1) {
@@ -183,12 +334,16 @@ app.post("/check", async (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
     const user = await User1.findOne({ email: email });
+
     if (user && user.password === password) {
       res.cookie("authToken", "123456789", { maxAge: 3600000, httpOnly: true });
 
-      // Add this code to set a flag in the session indicating that the user is logged in
+      // Set the session flags
       req.session.loggedIn = true;
-      req.session.usern = user.username;
+      req.session.usern = await user.username;
+      req.session.emailn = req.body.email;
+
+      // Pass the username to the dashboard template when rendering
       res.status(201).render("index");
     } else {
       res.redirect("/login?message=Incorrect%20password");
@@ -198,6 +353,7 @@ app.post("/check", async (req, res) => {
     res.status(500).send("Server error");
   }
 });
+
 
 app.get("/logout", function (req, res) {
   // Destroy the user's session to log them out
@@ -245,6 +401,8 @@ app.get("/game-history", async (req, res) => {
   });
   
 
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`server is running at port no ${port}`);
 });
+
+

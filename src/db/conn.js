@@ -5,7 +5,7 @@ const connectionString = "mongodb+srv://shivam66jnp:XYPPYf4gyJf5El4O@cluster0.ru
 mongoose.connect(connectionString, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-//   serverSelectionTimeoutMS: 5000
+  // serverSelectionTimeoutMS: 5000
 }).then(() => {
   console.log("Connection to MongoDB Atlas successful");
 }).catch((error) => {
