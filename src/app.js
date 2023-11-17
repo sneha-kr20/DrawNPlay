@@ -151,154 +151,231 @@ app.get("/admin", async(req, res) => {
 
 
 const users = {};
-const gameSessions = {}; // Object to store game sessions
+const gameSessions = {}; // Remove the in-memory gameSessions object
 
 // Function to update player information and send it to clients
-const updatePlayerInfo = (socket, gameID) => {
-  const players = Object.values(users).filter(user => user.gameID === gameID);
+const updatePlayerInfo = async (socket, gameID) => {
   
-  // Sort players based on points in descending order
-  players.sort((a, b) => b.points - a.points);
-  
-  // Update ranks
-  players.forEach((player, index) => {
+  try {
+    const game = await GameSession.findOne({ gameID });
+    if (!game) {
+      console.error(`Game not found with ID: ${gameID}`);
+      return;
+    }
+
+    const players = game.players;
+
+    // Sort players based on points in descending order
+    players.sort((a, b) => b.points - a.points);
+
+    // Update ranks
+    players.forEach((player, index) => {
       player.rank = index + 1;
-  });
-  // console.log(players);
+    });
 
-  // Send player information to all clients in the game session
-  io.to(gameID).emit('update-players', players);
+    // Send player information to all clients in the game session
+    io.to(gameID).emit('update-players', players);
+  } catch (error) {
+    console.error(error);
+  }
 };
-
 io.on('connection', socket => {
-    console.log(`Connection established: ${socket.id}`);
+  console.log(`Connection established: ${socket.id}`);
 
-    // Prompt the user for their name and game ID
-    socket.emit('request-name-and-gameID');
+  // Prompt the user for their name and game ID
+  socket.emit('request-name-and-gameID');
 
-    // When a user sends their name and game ID, store it and notify others
-    socket.on('new-user-joined', ({ name, gameID }) => {
-      socket.join(gameID); // Create a room for the specific game session
-      users[socket.id] = { name, gameID, points: 10, rank: 0 };
-      updatePlayerInfo(socket, gameID);
-      socket.broadcast.to(gameID).emit('user-joined', { name, gameID });
-    });
-
-    // If someone sends a message, broadcast it to other people in the same game session
-    socket.on('send', ({ message, gameID, name }) => {
-      socket.broadcast.to(gameID).emit('receive', { message, name });
-    });
+  socket.on('new-user-joined', async ({ name, gameID }) => {
+    socket.join(gameID);
+  
+    try {
+      const game = await GameSession.findOne({ gameID });
+  
+      if (!game) {
+        console.error(`Game not found with ID: ${gameID}`);
+        return;
+      }
+  
+      const existingPlayer = game.players.find(
+        (player) => player.username === name
+      );
+  
+      if (existingPlayer) {
+        // If the player already exists, update their socket ID
+        existingPlayer.socketID = socket.id;
+        await game.save();
+      } else {
+        // If the player doesn't exist, add a new player
+        game.players.push({
+          username: name,
+          points: 10,
+          rank: 0,
+          socketID: socket.id,
+        });
+  
+        await game.save();
+  
+        // Update player information and notify others
+        updatePlayerInfo(socket, gameID);
+        users[socket.id]={name,gameID};
+  
+        // Broadcast the user-joined event to others in the same game session
+        socket.broadcast.to(gameID).emit('user-joined', { name, gameID });
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  });
   
 
-    // If someone leaves the chat, let others in the same game session know
-    socket.on('disconnect', () => {
-      const { name, gameID } = users[socket.id] || {};
-      if (name && gameID) {
-          socket.broadcast.to(gameID).emit('left', { name, gameID });
-          delete users[socket.id];
-          updatePlayerInfo(socket, gameID);
-          io.to(gameID).emit('update-player-count', getPlayersCountInGame(gameID));
-      }
+  // If someone sends a message, broadcast it to other people in the same game session
+  socket.on('send', ({ message, gameID, name }) => {
+    socket.broadcast.to(gameID).emit('receive', { message, name });
   });
 
+  socket.on('disconnect', async () => {
+    const { name, gameID } = users[socket.id] || {};
+    // console.log({name,gameID});
+    if (name && gameID) {
+        try {
+            const game = await GameSession.findOne({ gameID });
+
+            if (game) {
+                const playerIndex = game.players.findIndex(player => player.username === name);
+
+                if (playerIndex !== -1) {
+                    game.players.splice(playerIndex, 1);
+                    await game.save();
+
+                    socket.broadcast.to(gameID).emit('left', { name, gameID });
+                    updatePlayerInfo(socket, gameID);
+                    io.to(gameID).emit('update-player-count', getPlayersCountInGame(gameID));
+
+                    if (game.players.length === 0) {
+                        game.active = false;
+                        await game.save();
+                    }
+                }
+            }
+        } catch (error) {
+            console.error(error);
+            // Handle the error, such as sending an error response to the client
+        }
+    }
+
+
+});
+
+
+  // Handle drawing event
   socket.on('drawing', ({ drawingData, gameID }) => {
     socket.broadcast.to(gameID).emit('drawing', drawingData);
+  });
 });
 
-});
+const getPlayersCountInGame = async (gameID) => {
+  try {
+    const game = await GameSession.findOne({ gameID });
 
-const getPlayersCountInGame = (gameID) => {
-  return Object.values(users).filter(user => user.gameID === gameID).length;
+    if (game) {
+      return game.players.length;
+    } else {
+      console.error(`Game not found with ID: ${gameID}`);
+      return 0;
+    }
+  } catch (error) {
+    console.error(error);
+    return 0;
+  }
 };
 
+// Route to get game information
+app.get('/api/getInitialGameData', async (req, res) => {
+  try {
+    const { gameID } = req.query;
+    const game = await GameSession.findOne({ gameID });
+    if (!game) {
+      console.error(`Game not found with ID: ${gameID}`);
+      return;
+    }
 
-app.get('/api/getExistingGames', (req, res) => {
-  const publicGames = Object.values(gameSessions)
-      .filter((game) => game.active && game.gameType === 'public') // Adjusted filtering condition
-      .map((game) => ({
-          gameID: game.gameID,
-          adminName: game.adminName,
-          playersCount: game.players.length,
-          // maxPlayers: game.maxPlayers,
-      }));
-  // console.log(publicGames);
+    const players = game.players;
 
-  res.json(publicGames);
+    // Sort players based on points in descending order
+    players.sort((a, b) => b.points - a.points);
+
+    // Update ranks
+    players.forEach((player, index) => {
+      player.rank = index + 1;
+    });
+    res.json({ players });
+  } catch (error) {
+    console.error('Error fetching initial game data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+app.get('/api/getExistingGames', async (req, res) => {
+  try {
+    const publicGames = await GameSession.find({ active: true, gameType: 'public' });
+    const gameList = publicGames.map(game => ({
+      gameID: game.gameID,
+      adminName: game.adminName,
+      playersCount: game.players.length,
+    }));
+    res.json(gameList);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal server error");
+  }
 });
 
 // Routes
 app.post("/game/start", async (req, res) => {
-    try {
-        const { gameID,gameType } = req.body;
+  try {
+    const { gameID, gameType } = req.body;
 
-        if (req.session.usern) {
-            const adminName = req.session.usern;
-            // const gameID = generateRandomGameID(); // Define your function to generate a unique game ID
+    if (req.session.usern) {
+      const adminName = req.session.usern;
 
-            // Check if a game with the same ID already exists
-            if (gameSessions[gameID]) {
-                return res.status(400).send("Game with this ID already exists");
-            }
+      const existingGame = await GameSession.findOne({ gameID });
+      if (existingGame) {
+        return res.status(400).send("Game with this ID already exists");
+      }
 
-            const newGame = new GameSession({
-                gameID,
-                gameType,
-                date: new Date(),
-                adminName,
-                players: [
-                    {
-                        username: adminName,
-                        points: 10,
-                        rank: 0,
-                    },
-                ],
-            });
+      const newGame = new GameSession({
+        gameID,
+        gameType,
+        adminName,
+        players: [],
+      });
 
-            gameSessions[gameID] = newGame;
+      await newGame.save();
 
-            await newGame.save();
-
-            res.status(200).send({ gameID, message: "Game session created successfully" });
-        } else {
-            res.status(500).send("Login first");
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Error initiating the game");
+      res.status(200).send({ gameID, message: "Game session created successfully" });
+    } else {
+      res.status(500).send("Login first");
     }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error initiating the game");
+  }
 });
-
-
 
 app.get("/game/:gameID", async (req, res) => {
   try {
-      const gameID = req.params.gameID;
+    const gameID = req.params.gameID;
 
-      if (req.session.usern) {
-          const playerName = req.session.usern;
-          let game = gameSessions[gameID];
+    if (req.session.usern) {
+      const playerName = req.session.usern;
+      const game = await GameSession.findOne({ gameID });
 
-          if (!game) {
-              return res.status(404).send("Game not found");
-          }
-
-          const playerAlreadyJoined = game.players.some(
-              (player) => player.username === playerName && player.username !== game.adminName
-          );
-
-          if (playerAlreadyJoined) {
-            res.render("game", { gameID: gameID, adminName: adminName, players: game.players });
-          }
-
-          game.players.push({
-              username: playerName,
-              points: 0,
-              rank: 1000,
-          });
-
-          await game.save(); 
-          let adminName = game.adminName;
-      res.render("game", { gameID: gameID, adminName: adminName, players: game.players });
+      if (!game) {
+        return res.status(404).send("Game not found");
+      }
+      const adminName = game.adminName;
+      res.render("game", { gameID, adminName, players: game.players });
     } else {
       res.redirect("/login");
     }

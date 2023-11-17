@@ -244,22 +244,35 @@ li{
 
 .modal-content {
   color: white;
-  background-color: #514646;
-  margin: 15% auto;
+  background-color: #5146465e;
+  margin: auto;
   padding: 20px;
   border: 1px solid #888;
-  width: 80%;
+  /* width: 80%; */
+  border-radius: 10px;
   text-align: center;
+}
+.modal-content h2{
+  margin: 10px;
+  font-size: 40px;
+  color: #78f436;
+}
+
+.modal-content li{
+  margin: 5px;
+  font-size: 20px;
+  color: #daded8;
 }
 
 .close {
   color: white;
   background-color: #f44336;
   border-radius: 10px;
-  position: absolute;
+  /* position: absolute; */
   right: 25px;
   top: 20px;
-  font-size: 30px;
+  /* font-size: 30px; */
+  margin: 20px;
   padding: 10px;
   cursor: pointer;
 }

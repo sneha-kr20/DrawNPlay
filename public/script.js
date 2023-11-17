@@ -217,14 +217,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const pointsCell = row.insertCell(1);
         const rankCell = row.insertCell(2);
 
-        nameCell.textContent = player.name;
+        nameCell.textContent = player.username;
         pointsCell.textContent = player.points;
         rankCell.textContent = player.rank;
     });
   };
 
   socket.on('user-joined', ({ name, gameID }) => {
-    if (!playerList.some(player => player.name === name)) {
+    if (!playerList.some(player => player.username === name)) {
         // Add the new player to the player list with default values
         playerList.push({ name, points: 10, rank: playerList.length + 1 });
         updatePlayerTable(playerList);
@@ -237,10 +237,10 @@ document.addEventListener("DOMContentLoaded", function () {
     playerList = players;
     updatePlayerTable(playerList);
   });
-  
 
     socket.on('left', ({ name, gameID }) => {
-        appendNotification(`${name} left the chat`, 'center');
+        // appendNotification(`${name} left the chat`, 'center');
+        updatePlayerTable(players);
     });
     form.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -329,6 +329,25 @@ document.addEventListener("DOMContentLoaded", function () {
           drawingData = data;
           draw();
       });
+
+      const getInitialGameData = async () => {
+        try {
+          const response = await fetch(`/api/getInitialGameData?gameID=${gameID}`);
+          const data = await response.json();
+    
+          if (data.players) {
+            playerList = data.players;
+            updatePlayerTable(playerList);
+          }
+        } catch (error) {
+          console.error('Error fetching initial game data:', error);
+        }
+      };
+        getInitialGameData();
+
+
+
+
 });
 
 
