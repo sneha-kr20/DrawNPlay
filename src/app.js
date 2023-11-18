@@ -190,7 +190,7 @@ function startTimer(gameID) {
 
 const startNewRound = async (gameID) => {
   const drawingUser = await selectDrawingUser(gameID);
-  console.log(drawingUser);
+  // console.log(drawingUser);
 
   if (drawingUser) {
     io.to(gameID).emit('start-drawing', { wordToDraw: drawingUser.username });
