@@ -144,8 +144,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 document.addEventListener("DOMContentLoaded", function () {
-  const socket = io('http://localhost:3000');
-  // const socket = io('https://drawnplay.onrender.com');
+  // const socket = io('http://localhost:3000');
+  const socket = io('https://drawnplay.onrender.com');
   const form = document.getElementById('send-container');
   const messageInput = document.getElementById('message-input');
   const messageContainer = document.querySelector(".chat-messages");
