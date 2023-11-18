@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style1.css">
     <link rel="stylesheet" href="style2.css">
     <link rel="stylesheet" href="login.css">
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
   </head>
   <body >
 {{> navbar}}
@@ -45,6 +46,10 @@
 
         <input type="submit" value="Submit" onclick="submitForm()">
       </form>
+    </div>
+    <div class="google">
+
+      <div class="g-signin2" data-onsuccess="onGoogleSignIn">Sign in with Google</div>
     </div>
 
     {{> footer}}

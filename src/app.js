@@ -1,5 +1,7 @@
 const express = require("express");
 const path = require("path");
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const app = express();
 const http = require("http");
 const hbs = require("hbs");
@@ -148,14 +150,80 @@ app.get("/admin", async(req, res) => {
   }
 });
 
+const DRAWING_PHASE_DURATION = 60; // Adjust as needed
 
+const GAME_STATE = {
+  LOBBY: 'lobby',
+  DRAWING: 'drawing',
+};
 
 const users = {};
-const gameSessions = {}; // Remove the in-memory gameSessions object
+const gameStates = {};
+const timerValues = {};
+const timerIntervals = {};
+const submittedWords={};
 
-// Function to update player information and send it to clients
+function updateTimerDisplay(gameID) {
+  io.to(gameID).emit('update-timer', timerValues[gameID]);
+}
+
+function startTimer(gameID) {
+  timerValues[gameID] = DRAWING_PHASE_DURATION;
+  updateTimerDisplay(gameID);
+
+  timerIntervals[gameID] = setInterval(() => {
+    timerValues[gameID]--;
+
+    if (timerValues[gameID] <= 0) {
+      clearInterval(timerIntervals[gameID]);
+      timerValues[gameID] = DRAWING_PHASE_DURATION;
+
+      if (gameStates[gameID] === GAME_STATE.DRAWING) {
+        io.to(gameID).emit('end-drawing');
+        gameStates[gameID] = GAME_STATE.LOBBY;
+        startNewRound(gameID);
+      }
+    }
+
+    updateTimerDisplay(gameID);
+  }, 1000);
+}
+
+const startNewRound = async (gameID) => {
+  const drawingUser = await selectDrawingUser(gameID);
+  console.log(drawingUser);
+
+  if (drawingUser) {
+    io.to(gameID).emit('start-drawing', { wordToDraw: drawingUser.username });
+    startTimer(gameID);
+  }
+
+  gameStates[gameID] = GAME_STATE.DRAWING;
+
+};
+
+const selectDrawingUser = async (gameID) => {
+  try {
+    const game = await GameSession.findOne({ gameID });
+
+    if (!game) {
+      console.error(`Game not found with ID: ${gameID}`);
+      return null;
+    }
+
+    const players = game.players;
+
+    // Get a random index within the range of the total number of players
+    const randomIndex = Math.floor(Math.random() * players.length);
+
+    return players[randomIndex] || { username: game.adminName };
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
 const updatePlayerInfo = async (socket, gameID) => {
-  
   try {
     const game = await GameSession.findOne({ gameID });
     if (!game) {
@@ -165,113 +233,195 @@ const updatePlayerInfo = async (socket, gameID) => {
 
     const players = game.players;
 
-    // Sort players based on points in descending order
     players.sort((a, b) => b.points - a.points);
 
-    // Update ranks
     players.forEach((player, index) => {
       player.rank = index + 1;
     });
 
-    // Send player information to all clients in the game session
     io.to(gameID).emit('update-players', players);
   } catch (error) {
     console.error(error);
   }
 };
-io.on('connection', socket => {
+
+io.on('connection', (socket) => {
   console.log(`Connection established: ${socket.id}`);
 
-  // Prompt the user for their name and game ID
   socket.emit('request-name-and-gameID');
 
   socket.on('new-user-joined', async ({ name, gameID }) => {
     socket.join(gameID);
-  
+
     try {
       const game = await GameSession.findOne({ gameID });
-  
+
       if (!game) {
         console.error(`Game not found with ID: ${gameID}`);
         return;
       }
-  
+
       const existingPlayer = game.players.find(
         (player) => player.username === name
       );
-  
+
       if (existingPlayer) {
-        // If the player already exists, update their socket ID
         existingPlayer.socketID = socket.id;
         await game.save();
       } else {
-        // If the player doesn't exist, add a new player
         game.players.push({
           username: name,
           points: 10,
           rank: 0,
           socketID: socket.id,
         });
-  
+
         await game.save();
-  
-        // Update player information and notify others
+
         updatePlayerInfo(socket, gameID);
-        users[socket.id]={name,gameID};
-  
-        // Broadcast the user-joined event to others in the same game session
+        users[socket.id] = { name, gameID };
+
         socket.broadcast.to(gameID).emit('user-joined', { name, gameID });
       }
     } catch (error) {
       console.error(error);
     }
   });
-  
 
-  // If someone sends a message, broadcast it to other people in the same game session
-  socket.on('send', ({ message, gameID, name }) => {
+  socket.on('send',async ({ message, gameID, name })=> {
+    const submittedWord = submittedWords[gameID];
+    // console.log(submittedWord);
+    if (submittedWord && message.toLowerCase() === submittedWord.toLowerCase()) {
+      await handleCorrectGuess(gameID, name, socket);
+      io.to(gameID).emit('correct-guess', { name });
+    }
+  
     socket.broadcast.to(gameID).emit('receive', { message, name });
   });
 
   socket.on('disconnect', async () => {
     const { name, gameID } = users[socket.id] || {};
-    // console.log({name,gameID});
     if (name && gameID) {
-        try {
-            const game = await GameSession.findOne({ gameID });
+      try {
+        const game = await GameSession.findOne({ gameID });
+  
+        if (game) {
+          const playerIndex = game.players.findIndex(
+            (player) => player.username === name
+          );
+  
+          if (playerIndex !== -1) {
+            // Retrieve user information before removing from the array
+            const userInGame = game.players[playerIndex];
+  
+            await updateUserGameHistory(name, gameID, userInGame);
+            game.players.splice(playerIndex, 1);
+            await game.save();
+  
+            // Update the user's game history in the User model
 
-            if (game) {
-                const playerIndex = game.players.findIndex(player => player.username === name);
+            socket.broadcast.to(gameID).emit('left', { name, gameID });
+            updatePlayerInfo(socket, gameID);
+            io.to(gameID).emit(
+              'update-player-count',
+              getPlayersCountInGame(gameID)
+            );
 
-                if (playerIndex !== -1) {
-                    game.players.splice(playerIndex, 1);
-                    await game.save();
-
-                    socket.broadcast.to(gameID).emit('left', { name, gameID });
-                    updatePlayerInfo(socket, gameID);
-                    io.to(gameID).emit('update-player-count', getPlayersCountInGame(gameID));
-
-                    if (game.players.length === 0) {
-                        game.active = false;
-                        await game.save();
-                    }
-                }
+            if (game.players.length === 0) {
+              game.active = false;
+              await game.save();
             }
-        } catch (error) {
-            console.error(error);
-            // Handle the error, such as sending an error response to the client
+
+            if (gameStates[gameID] === GAME_STATE.DRAWING) {
+              io.to(gameID).emit('end-drawing');
+              gameStates[gameID] = GAME_STATE.LOBBY;
+              startNewRound(gameID);
+            }
+          }
         }
+      } catch (error) {
+        console.error(error);
+      }
     }
+  });
 
-
-});
-
-
-  // Handle drawing event
   socket.on('drawing', ({ drawingData, gameID }) => {
     socket.broadcast.to(gameID).emit('drawing', drawingData);
   });
+  socket.on('end-drawing', (gameID) => {
+    console.log('End drawing!');
+    if (gameStates[gameID] === GAME_STATE.DRAWING) {
+      io.to(gameID).emit('end-drawing');
+      gameStates[gameID] = GAME_STATE.LOBBY;
+      startNewRound(gameID);
+    }
+  });
+  socket.on('word-submitted', ({ word, gameID }) => {
+    console.log(word);
+    submittedWords[gameID] = word;
+    io.to(gameID).emit('word-submitted', { word });
+  });
+  
 });
+
+const handleCorrectGuess = async (gameID, playerName, socket) => {
+  try {
+    // Update points in GameSession model
+    const updatedGame = await GameSession.findOneAndUpdate(
+      { gameID, 'players.username': playerName },
+      { $inc: { 'players.$.points': 1 } },
+      { new: true }
+    );
+    // Update points in User model
+    const updatedUser = await User1.findOneAndUpdate(
+      { username: playerName },
+      {
+        $inc: { points: 1 },
+      },
+      { new: true }
+    );
+    updatePlayerInfo(socket,gameID);
+  } catch (error) {
+    console.error('Error handling correct guess:', error);
+  }
+};
+
+
+const updateUserGameHistory = async (username, gameID, userInGame) => {
+  try {
+    // Update points in User model
+    const game = await GameSession.findOne({ gameID });
+    if (!game) {
+      console.error(`Game not found with ID: ${gameID}`);
+      return;
+    }
+
+    const players = game.players;
+
+    players.sort((a, b) => b.points - a.points);
+
+    userInGame.rank = players.findIndex(player => player.username === username) + 1;
+
+    await User1.findOneAndUpdate(
+      { username },
+      {
+        $inc: { points: 10 },
+        $push: {
+          gameHistory: {
+            gameID,
+            date: userInGame.date,
+            points: userInGame.points,
+            rank: userInGame.rank,
+          },
+        },
+      },
+      { new: true }
+    );
+  } catch (error) {
+    console.error('Error updating user game history:', error);
+  }
+};
+
 
 const getPlayersCountInGame = async (gameID) => {
   try {
@@ -289,7 +439,6 @@ const getPlayersCountInGame = async (gameID) => {
   }
 };
 
-// Route to get game information
 app.get('/api/getInitialGameData', async (req, res) => {
   try {
     const { gameID } = req.query;
@@ -301,10 +450,8 @@ app.get('/api/getInitialGameData', async (req, res) => {
 
     const players = game.players;
 
-    // Sort players based on points in descending order
     players.sort((a, b) => b.points - a.points);
 
-    // Update ranks
     players.forEach((player, index) => {
       player.rank = index + 1;
     });
@@ -315,11 +462,13 @@ app.get('/api/getInitialGameData', async (req, res) => {
   }
 });
 
-
 app.get('/api/getExistingGames', async (req, res) => {
   try {
-    const publicGames = await GameSession.find({ active: true, gameType: 'public' });
-    const gameList = publicGames.map(game => ({
+    const publicGames = await GameSession.find({
+      active: true,
+      gameType: 'public',
+    });
+    const gameList = publicGames.map((game) => ({
       gameID: game.gameID,
       adminName: game.adminName,
       playersCount: game.players.length,
@@ -327,12 +476,11 @@ app.get('/api/getExistingGames', async (req, res) => {
     res.json(gameList);
   } catch (error) {
     console.error(error);
-    res.status(500).send("Internal server error");
+    res.status(500).send('Internal server error');
   }
 });
 
-// Routes
-app.post("/game/start", async (req, res) => {
+app.post('/game/start', async (req, res) => {
   try {
     const { gameID, gameType } = req.body;
 
@@ -341,7 +489,7 @@ app.post("/game/start", async (req, res) => {
 
       const existingGame = await GameSession.findOne({ gameID });
       if (existingGame) {
-        return res.status(400).send("Game with this ID already exists");
+        return res.status(400).send('Game with this ID already exists');
       }
 
       const newGame = new GameSession({
@@ -352,18 +500,20 @@ app.post("/game/start", async (req, res) => {
       });
 
       await newGame.save();
-
-      res.status(200).send({ gameID, message: "Game session created successfully" });
+      startNewRound(gameID);
+      res
+        .status(200)
+        .send({ gameID, message: 'Game session created successfully' });
     } else {
-      res.status(500).send("Login first");
+      res.status(500).send('Login first');
     }
   } catch (error) {
     console.error(error);
-    res.status(500).send("Error initiating the game");
+    res.status(500).send('Error initiating the game');
   }
 });
 
-app.get("/game/:gameID", async (req, res) => {
+app.get('/game/:gameID', async (req, res) => {
   try {
     const gameID = req.params.gameID;
 
@@ -372,29 +522,28 @@ app.get("/game/:gameID", async (req, res) => {
       const game = await GameSession.findOne({ gameID });
 
       if (!game) {
-        return res.status(404).send("Game not found");
+        return res.status(404).send('Game not found');
       }
       const adminName = game.adminName;
-      res.render("game", { gameID, adminName, players: game.players });
+      res.render('game', { gameID, adminName, players: game.players });
     } else {
-      res.redirect("/login");
+      res.redirect('/login');
     }
   } catch (error) {
     console.error(error);
-    res.status(500).send("Error joining the game");
+    res.status(500).send('Error joining the game');
   }
 });
-
 
 app.get('/get-username', (req, res) => {
   if (req.session.usern) {
-      // If the user is authenticated, send the username to the client
-      res.json({ username: req.session.usern });
+    res.json({ username: req.session.usern });
   } else {
-    res.render("login");
-      // res.status(401).json({ error: 'User not authenticated' });
+    res.render('login');
   }
 });
+
+
 
 
 

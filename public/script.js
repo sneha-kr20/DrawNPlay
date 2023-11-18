@@ -144,12 +144,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 document.addEventListener("DOMContentLoaded", function () {
-  // const socket = io('http://localhost:3000');
-  const socket = io('https://drawnplay.onrender.com');
+  const socket = io('http://localhost:3000');
+  // const socket = io('https://drawnplay.onrender.com');
   const form = document.getElementById('send-container');
   const messageInput = document.getElementById('message-input');
   const messageContainer = document.querySelector(".chat-messages");
   let hasJoined = false; // Flag to check if the user has already joined
+  let drawingPermission = false;
 
   const appendMessage = (message, position) => {
       const messageElement = document.createElement('div');
@@ -186,6 +187,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Call this function when you need to get the username
   getUsername();
+
+
+  socket.on('start-drawing', async ({ wordToDraw }) => {
+    document.getElementById('drawer-name-value').textContent = wordToDraw;
+  
+    const response = await fetch('/get-username');
+    const data = await response.json();
+    const username = data.username;
+  
+    if (username === wordToDraw) {
+      const word = prompt('Enter the word to draw:');
+      socket.emit('word-submitted', { word, gameID });
+      drawingPermission = true;
+    } else {
+      drawingPermission = false;
+    }
+  });
+  
 
   socket.on('user-joined', ({ name, gameID }) => {
       if (!hasJoined) {
@@ -279,6 +298,7 @@ document.addEventListener("DOMContentLoaded", function () {
       let drawingData = [];
       
       canvas.addEventListener("mousedown", (e) => {
+        if (!drawingPermission) return;
           isDrawing = true;
           const { offsetX, offsetY } = e;
           drawingData.push({
@@ -289,6 +309,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       
       canvas.addEventListener("mousemove", (e) => {
+        if (!isDrawing || !drawingPermission) return;
           if (!isDrawing) return;
           const { offsetX, offsetY } = e;
           drawingData.push({
@@ -300,6 +321,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       
       canvas.addEventListener("mouseup", () => {
+        if (!drawingPermission) return;
           isDrawing = false;
           drawingData.push({
               type: "end"
@@ -345,7 +367,23 @@ document.addEventListener("DOMContentLoaded", function () {
       };
         getInitialGameData();
 
+      socket.on('update-timer', (timerValue) => {
+          document.getElementById('timer-value').textContent = timerValue;
+      });
 
+      socket.on('start-drawing', ({ wordToDraw }) => {
+        console.log(`Start drawing! Word to draw: ${wordToDraw}`);
+      });
+
+      socket.on('start-guessing', ({ wordToGuess }) => {
+        console.log(`Start guessing! Word to guess: ${wordToGuess}`);
+      });
+      socket.on('end-drawing', () => {
+        console.log('End drawing!');
+      });
+      socket.on('end-guessing', () => {
+        console.log('End guessing!');
+      });
 
 
 });
