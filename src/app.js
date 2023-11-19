@@ -156,6 +156,7 @@ const GAME_STATE = {
   DRAWING: 'drawing',
 };
 
+const isTimerPaused = {};
 const users = {};
 const gameStates = {};
 const timerValues = {};
@@ -171,22 +172,27 @@ function startTimer(gameID) {
   updateTimerDisplay(gameID);
 
   timerIntervals[gameID] = setInterval(() => {
-    timerValues[gameID]--;
+    if (!isTimerPaused[gameID]) {
+      // console.log(isTimerPaused[gameID]);
+      // console.log(timerValues[gameID]);
+      timerValues[gameID]--;
 
-    if (timerValues[gameID] <= 0) {
-      clearInterval(timerIntervals[gameID]);
-      timerValues[gameID] = DRAWING_PHASE_DURATION;
+      if (timerValues[gameID] <= 0) {
+        clearInterval(timerIntervals[gameID]);
+        timerValues[gameID] = DRAWING_PHASE_DURATION;
 
-      if (gameStates[gameID] === GAME_STATE.DRAWING) {
-        io.to(gameID).emit('end-drawing');
-        gameStates[gameID] = GAME_STATE.LOBBY;
-        startNewRound(gameID);
+        if (gameStates[gameID] === GAME_STATE.DRAWING) {
+          io.to(gameID).emit('end-drawing');
+          gameStates[gameID] = GAME_STATE.LOBBY;
+          startNewRound(gameID);
+        }
       }
-    }
 
-    updateTimerDisplay(gameID);
+      updateTimerDisplay(gameID);
+    }
   }, 1000);
 }
+
 
 const startNewRound = async (gameID) => {
   const drawingUser = await selectDrawingUser(gameID);
@@ -215,7 +221,7 @@ const selectDrawingUser = async (gameID) => {
     // Get a random index within the range of the total number of players
     const randomIndex = Math.floor(Math.random() * players.length);
 
-    return players[randomIndex] || { username: game.adminName };
+    return players[randomIndex] || {username:"x"} ;
   } catch (error) {
     console.error(error);
     return null;
@@ -331,11 +337,14 @@ io.on('connection', (socket) => {
               await game.save();
             }
 
-            if (gameStates[gameID] === GAME_STATE.DRAWING) {
+            if (userInGame.drawingPermission && gameStates[gameID] === GAME_STATE.DRAWING && !isTimerPaused[gameID]) {
               io.to(gameID).emit('end-drawing');
               gameStates[gameID] = GAME_STATE.LOBBY;
               startNewRound(gameID);
-            }
+          } else if (isTimerPaused[gameID]) {
+              startTimer(gameID);
+          }
+          
           }
         }
       } catch (error) {
@@ -356,10 +365,23 @@ io.on('connection', (socket) => {
     }
   });
   socket.on('word-submitted', ({ word, gameID }) => {
-    console.log(word);
+    // console.log(word);
     submittedWords[gameID] = word;
     io.to(gameID).emit('word-submitted', { word });
   });
+
+  socket.on('pause-timer', (gameID) => {
+    isTimerPaused[gameID] = true;
+    // console.log("timer paused "+isTimerPaused[gameID]);
+  });
+  
+  socket.on('resume-timer', (gameID) => {
+    timerValues[gameID]=60;
+    isTimerPaused[gameID] = false;
+    startTimer(gameID);
+    // console.log("timer resumed "+isTimerPaused[gameID]);
+  });
+  
   
 });
 
