@@ -21,7 +21,7 @@
           <input type="text" id="search-input" placeholder="Search online player...">
           <button id="search-button" onclick="searchUsers()">Search</button>
         </div>
-        
+        <div id="online-players">Searched Player....</div>
       </section>
       <section>
 
@@ -31,17 +31,6 @@
           <br>
           <p>Invite Link: <span id="invite-link">Your Invite Link Will Appear Here</span></p>
         </div>
-
-        <div class="lobby">
-          <h3>See who are waiting in Lobby:</h3>
-          <div id="lobby-users">
-            <!-- Usernames of users waiting in the lobby will be displayed here -->
-          </div>
-        </div>
-
-      </section>
-      <br>
-      
       <section id="game-settings">
         <h3>Game Settings</h3>
         <label for="game-type">Game Type:</label>
@@ -51,6 +40,10 @@
         </select>
         <button id="start-game-button">Start Game</button>
       </section>
+
+      </section>
+      <br>
+      
     </main>
     
     {{> footer}}

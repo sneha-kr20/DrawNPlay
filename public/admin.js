@@ -69,3 +69,41 @@ startGameButton.addEventListener('click', async function () {
     }
   }
 });
+
+async function searchUsers() {
+  try {
+    const searchInput = document.getElementById('search-input');
+    const searchTerm = searchInput.value;
+
+    const response = await fetch(`/search?term=${searchTerm}`);
+    const data = await response.json();
+
+    const onlinePlayersDiv = document.getElementById('online-players');
+    onlinePlayersDiv.innerHTML = '';
+
+    const onlinePlayers = data.users;
+
+    if (onlinePlayers.length === 0) {
+      const noUsersMessage = document.createElement('div');
+      noUsersMessage.textContent = 'No users found.';
+      onlinePlayersDiv.appendChild(noUsersMessage);
+      onlinePlayersDiv.style.display = 'block';
+    } else {
+      onlinePlayers.forEach(player => {
+        const playerDiv = document.createElement('div');
+        playerDiv.textContent = player.username;
+        onlinePlayersDiv.appendChild(playerDiv);
+        onlinePlayersDiv.style.display = 'block';
+      });
+    }
+  } catch (error) {
+    console.error('Error searching users:', error);
+  }
+}
+
+  // Call the searchUsers function when the search button is clicked
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchButton = document.getElementById('search-button');
+    searchButton.addEventListener('click', searchUsers);
+  });
+

@@ -87,6 +87,49 @@ app.get("/admin", async(req, res) => {
   app.get("/game", (req, res) => {
     res.render("game");
   });
+
+
+  app.get("/admin", async(req, res) => {
+    try {
+      const allUsers = await User1.find({}); // Fetch all users
+  
+      if (!allUsers || allUsers.length === 0) {
+        return res.status(404).send("No users found");
+      }
+  
+      // Sort users by points in descending order
+      allUsers.sort((a, b) => b.points - a.points);
+  
+      res.render("admin", { users: allUsers });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Internal server error");
+    }
+  });
+  app.get("/game", (req, res) => {
+    res.render("game");
+  });
+
+  app.get('/search', async (req, res) => {
+    try {
+      const searchTerm = req.query.term;
+  
+      if (!searchTerm) {
+        return res.status(400).json({ error: 'Search term is required' });
+      }
+  
+      // Use a case-insensitive regular expression to search for usernames containing the searchTerm
+      const matchingUsers = await User1.find({ username: { $regex: new RegExp(searchTerm, 'i') } });
+
+      // Sort matching users by points in descending order
+      matchingUsers.sort((a, b) => b.points - a.points);
+  
+      res.json({ users: matchingUsers });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
   
   app.get("/leaderboard", async (req, res) => {
     try {
