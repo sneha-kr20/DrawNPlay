@@ -355,6 +355,7 @@ io.on('connection', (socket) => {
 
   socket.on('drawing', ({ drawingData, gameID }) => {
     socket.broadcast.to(gameID).emit('drawing', drawingData);
+    // console.log(drawingData);
   });
   socket.on('end-drawing', (gameID) => {
     console.log('End drawing!');
