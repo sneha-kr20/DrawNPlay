@@ -132,8 +132,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 document.addEventListener("DOMContentLoaded", function () {
-  const socket = io('http://localhost:3000');
-  // const socket = io('https://drawnplay.onrender.com');
+//   const socket = io('http://localhost:3000');
+  const socket = io('https://drawnplay.onrender.com');
   const form = document.getElementById('send-container');
   const messageInput = document.getElementById('message-input');
   const messageContainer = document.querySelector(".chat-messages");
@@ -442,15 +442,70 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log(`Start guessing! Word to guess: ${wordToGuess}`);
       });
       socket.on('end-drawing', () => {
-        console.log('End drawing!');
-      });
-      socket.on('end-guessing', () => {
-        console.log('End guessing!');
-      });
-
+          console.log('End drawing!');
+        });
+        socket.on('end-guessing', () => {
+            console.log('End guessing!');
+        });
+        
+        // Add touch event listeners
+        canvas.addEventListener("touchstart", handleTouchStart);
+        canvas.addEventListener("touchmove", handleTouchMove);
+        canvas.addEventListener("touchend", handleTouchEnd);
+        
+        function handleTouchStart(event) {
+          if (!drawingPermission) return;
+          const touch = event.touches[0];
+          isDrawing = true;
+          const { offsetX, offsetY } = getTouchOffset(touch);
+          drawingData.push({
+            type: "start",
+            x: offsetX,
+            y: offsetY
+          });
+        }
+        
+        function handleTouchMove(event) {
+          if (!isDrawing || !drawingPermission) return;
+          const touch = event.touches[0];
+          const { offsetX, offsetY } = getTouchOffset(touch);
+          drawingData.push({
+            type: "draw",
+            x: offsetX,
+            y: offsetY
+          });
+          console.log(drawingData);
+          draw();
+        }
+        
+        function handleTouchEnd(event) {
+            
+          if (!drawingPermission) return;
+          isDrawing = false;
+          const touch = event.changedTouches[0];
+          const { offsetX, offsetY } = getTouchOffset(touch);
+          drawingData.push({
+            type: "end",
+            color: selectedColor,
+            size: brushWidth,
+            shape: selectedTool,
+            x: offsetX,
+            y: offsetY,
+            ischecked: fillColor.checked
+          });
+          socket.emit("drawing", { drawingData, gameID });
+          drawingData = []; // Reset the drawing data
+        }
+        
+        function getTouchOffset(touch) {
+          const rect = canvas.getBoundingClientRect();
+          return {
+            offsetX: touch.clientX - rect.left,
+            offsetY: touch.clientY - rect.top
+          };
+        }
 
 });
-
 
 
 
