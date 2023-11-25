@@ -9,20 +9,20 @@ Welcome to DrawNPlay, a creative platform where users can unleash their artistic
 
 -Technology Stacks Used
 
-Github
-Onrender
-MongoDB
-HTML
-CSS
-Javascipt
-NodeJS
-Bootstrap
+1) Github
+2) Onrender
+3) MongoDB
+4) HTML
+5) CSS
+6) Javascipt
+7) NodeJS
+8) Bootstrap
 
 
 -External API's used
 
-HTML Canvas API
-Socket.io
+1) HTML Canvas API
+2) Socket.io
 
 
 -Features
