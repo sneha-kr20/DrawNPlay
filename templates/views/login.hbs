@@ -47,12 +47,9 @@
         <input type="submit" value="Submit" onclick="submitForm()">
       </form>
     </div>
-    <div class="google">
+    
 
-      <div class="g-signin2" data-onsuccess="onGoogleSignIn">Sign in with Google</div>
-    </div>
-
-    {{> footer}}
+    {{> footeri}}
     <script>
       const message = new URLSearchParams(window.location.search).get("message");
 if (message) {
