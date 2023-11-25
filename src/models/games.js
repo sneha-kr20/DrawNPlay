@@ -1,6 +1,7 @@
 // models/games.js
 const mongoose = require("mongoose");
 
+// Defining the schema for storing the data in mongodb atlas
 const gameSessionSchema = new mongoose.Schema({
   gameID: { type: String, required: true, unique: true },
   active: { type: Boolean, default: true },
@@ -16,6 +17,9 @@ const gameSessionSchema = new mongoose.Schema({
   ],
 });
 
+// Player array consists of objects of players including username, points and their rannks
+
 const GameSession = mongoose.model("GameSession", gameSessionSchema);
 
+// Exporting the schema to server 
 module.exports = GameSession;
