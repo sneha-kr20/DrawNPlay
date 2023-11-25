@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 
-
+// User modal
 const gameSchema = new mongoose.Schema({
     gameID: { type: String, required: true },
     date: { type: Date, default: Date.now },
