@@ -33,6 +33,9 @@ User Profiles: Create and customize your user profile to showcase your artistic 
 Leaderboard: Compete with friends and the DrawNPlay community to see who can guess the most drawings.
 Interactive Chat: Engage with other participants through a real-time chat feature.
 
+For more details check out our presentation 
+https://www.canva.com/design/DAF1GX8_M00/kDilDnIfQkdiDkk01fESIQ/edit?utm_content=DAF1GX8_M00&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
+
 
 -Contributer's
 
