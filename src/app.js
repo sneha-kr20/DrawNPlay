@@ -1,3 +1,4 @@
+// Required packages 
 const express = require("express");
 const path = require("path");
 
@@ -12,12 +13,16 @@ const User = require("./models/usermessage");
 const User1 = require("./models/userlogin");
 const GameSession= require("./models/games");
 
+// Creating port ID
+
 const port = process.env.PORT || 3000;
 
 const static_path = path.join(__dirname, "../public");
 const templates_path = path.join(__dirname, "../templates/views");
 const partials_path = path.join(__dirname, "../templates/partials");
 
+
+// Starting a new session
 const session = require("express-session");
 app.use(
   session({
@@ -192,6 +197,8 @@ app.get("/admin", async(req, res) => {
   }
 });
 
+
+// The timer of the game session is set to 60 seconds
 const DRAWING_PHASE_DURATION = 60; // Adjust as needed
 
 const GAME_STATE = {
@@ -428,7 +435,7 @@ io.on('connection', (socket) => {
   
   
 });
-
+// If guess is correct, points are incremented
 const handleCorrectGuess = async (gameID, playerName, socket) => {
   try {
     // Update points in GameSession model
@@ -611,7 +618,7 @@ app.get('/get-username', (req, res) => {
 
 
 
-
+// Managing Get requests
 
 
 app.get("/contact", (req, res) => {
@@ -628,6 +635,7 @@ app.get("/404", (req, res) => {
   res.render("404");
 });
 
+// Post Requests
 
 app.post("/contact", async (req, res) => {
   try {
@@ -695,7 +703,7 @@ app.post("/check", async (req, res) => {
   }
 });
 
-
+// Log out of pre logged in session
 app.get("/logout", function (req, res) {
   // Destroy the user's session to log them out
   req.session.destroy(function (err) {
