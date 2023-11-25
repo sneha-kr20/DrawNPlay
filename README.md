@@ -1,6 +1,6 @@
 # DrawNPlay
 
-DrawNPlay-Dynamic-
+DrawNPlay-Dynamic
 
 -About 
 
